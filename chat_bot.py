@@ -6,6 +6,31 @@ from streamlit_searchbox import st_searchbox
 # === App Title ===
 st.title("📞 Call Center Chatbot")
 
+# === User Guide ===
+with st.expander("ℹ️ Hướng dẫn sử dụng chatbot", expanded=False):
+    st.info("""
+    **📘 Call Center Chatbot - Hướng Dẫn Sử Dụng**
+
+    **1. Nhập từ khóa**  
+    🔍 Gõ từ khóa vào ô tìm kiếm (ví dụ: *học phí, học bổng, đăng ký, lịch học*...).  
+    Chatbot sẽ tự động gợi ý những từ phù hợp.
+
+    **2. Xem câu trả lời**  
+    🤖 Sau khi chọn từ khóa, chatbot sẽ hiển thị câu trả lời tương ứng.  
+    Nếu có nhiều kết quả phù hợp, tất cả sẽ được hiển thị.
+
+    **3. Dữ liệu tự động cập nhật**  
+    📂 Dữ liệu được lấy từ GitHub và làm sạch trước khi hiển thị.  
+    Hệ thống chỉ giữ lại phiên bản mới nhất của mỗi từ khóa.
+
+    **Lưu ý:**  
+    - Nếu gặp lỗi khi kết nối, vui lòng kiểm tra kết nối mạng hoặc thử lại sau.  
+    - Hãy nhập từ khóa ngắn gọn hoặc phổ biến để tăng độ chính xác.
+
+    **🛠 Góp ý & Báo lỗi**  
+    Vui lòng liên hệ nhóm phát triển tại: [GitHub Repo](https://github.com/Menbeo/-HUHU-)
+    """)
+
 # === GitHub Repo Info ===
 GITHUB_USER = "Menbeo"
 GITHUB_REPO = "-HUHU-"
@@ -86,15 +111,15 @@ if not data.empty:
         if not matches.empty:
             for _, row in matches.iterrows():
                 st.write("🤖 **Bot:**", row["description"])
-                #st.caption(f"(📂 Chủ đề: {row['topic']} | 🔑 Từ khóa: {row['key word']})")
+                # st.caption(f"(📂 Chủ đề: {row['topic']} | 🔑 Từ khóa: {row['key word']})")
         else:
             st.info("Không tìm thấy mô tả cho từ khóa này.")
 else:
     st.error("⚠️ Không tìm thấy dữ liệu hợp lệ.")
 
 # === (Optional) Dev View: See removed duplicates ===
-#with st.expander("🛠️ [Dev] Xem các mô tả trùng lặp đã bị xóa", expanded=False):
-    #if not removed_duplicates.empty:
-        #st.dataframe(removed_duplicates)
-    #else:
-        #st.write("✅ Không có mô tả nào bị trùng lặp.")
+# with st.expander("🛠️ [Dev] Xem các mô tả trùng lặp đã bị xóa", expanded=False):
+#     if not removed_duplicates.empty:
+#         st.dataframe(removed_duplicates)
+#     else:
+#         st.write("✅ Không có mô tả nào bị trùng lặp.")
