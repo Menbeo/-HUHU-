@@ -5,9 +5,9 @@
 
 Lưu ý: Nếu trong file mới tải lên có nội dung "description" trùng với file cũ đã tải lên trước đó, chatbot sẽ tự động xóa nội dung bị trùng.
 
-4. Sau khi up file lên, đợi 1 phút rồi reload lại website để file mới được cập nhật
-5. Thông báo lên teams để các bạn làm Chatbot biết
-6. Nếu phát hiện bug @ Quỳnh, Tú hoặc Thạch để kịp thời xử lý
+3. Sau khi up file lên, đợi 1 phút rồi reload lại website để file mới được cập nhật
+4. Thông báo lên teams để các bạn làm Chatbot biết
+5. Nếu phát hiện bug @ Quỳnh, Tú hoặc Thạch để kịp thời xử lý
 
 Chú ý: Chắc chắn thông tin đã được up lên
    
