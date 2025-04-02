@@ -72,7 +72,10 @@ def load_csvs(csv_files):
         except Exception as e:
             st.warning(f"⚠️ Lỗi đọc {name}: {e}")
 
+    # ✅ Keep only the latest version of each "key word"
     combined = combined.drop_duplicates(subset="key word", keep="last")
+
+    # ✅ Optional clean-up: remove duplicate descriptions
     dupes = combined[combined.duplicated("description", keep=False)].copy()
     removed_duplicates = dupes[dupes.duplicated("description", keep="first")]
     cleaned_data = combined.drop_duplicates(subset="description", keep="first")
@@ -83,13 +86,15 @@ def load_csvs(csv_files):
 csv_files = get_csv_file_links()
 data, removed_duplicates = load_csvs(csv_files)
 
-# === Step 4: UI ===
+# === Step 4: Chatbot UI with Optional Sidebar Filter ===
 if not data.empty:
-    all_topics = sorted(data["topic"].dropna().unique())
+    all_keywords = sorted(data["key word"].dropna().astype(str).unique())
 
-    # === Sidebar for Topic and Keyword Selection ===
-    with st.sidebar:
-        st.header("📂 Bộ lọc từ khóa")
+    # === Sidebar: Optional topic/keyword filter ===
+    with st.sidebar.expander("📂 Bộ lọc theo chủ đề (tùy chọn)", expanded=False):
+        st.markdown("Bạn có thể lọc nhanh theo chủ đề và từ khóa")
+
+        all_topics = sorted(data["topic"].dropna().unique())
         selected_topic = st.selectbox("Chọn chủ đề", ["Tất cả"] + all_topics)
 
         if selected_topic != "Tất cả":
@@ -103,9 +108,7 @@ if not data.empty:
         if selected_sidebar_keyword:
             st.session_state["selected_keyword"] = selected_sidebar_keyword
 
-    # === Main Searchbox UI ===
-    all_keywords = sorted(data["key word"].dropna().astype(str).unique())
-
+    # === Main search UI ===
     def search_fn(user_input):
         return [kw for kw in all_keywords if user_input.lower() in kw.lower()]
 
@@ -119,7 +122,7 @@ if not data.empty:
     if selected_keyword:
         st.session_state["selected_keyword"] = selected_keyword
 
-    # === Display Answers ===
+    # === Display chatbot response ===
     if "selected_keyword" in st.session_state:
         keyword = st.session_state["selected_keyword"]
         matches = data[data["key word"].str.lower().str.contains(keyword.lower(), na=False)]
@@ -128,7 +131,16 @@ if not data.empty:
             st.subheader(f"Kết quả cho từ khóa: `{keyword}`")
             for _, row in matches.iterrows():
                 st.write("🤖 **Bot:**", row["description"])
+                # Uncomment to show more detail:
+                # st.caption(f"(📂 Chủ đề: {row['topic']} | 🔑 Từ khóa: {row['key word']})")
         else:
             st.info("Không tìm thấy mô tả cho từ khóa này.")
 else:
     st.error("⚠️ Không tìm thấy dữ liệu hợp lệ.")
+
+# === (Optional) Dev View: See removed duplicates ===
+# with st.expander("🛠️ [Dev] Xem các mô tả trùng lặp đã bị xóa", expanded=False):
+#     if not removed_duplicates.empty:
+#         st.dataframe(removed_duplicates)
+#     else:
+#         st.write("✅ Không có mô tả nào bị trùng lặp.")
