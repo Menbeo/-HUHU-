@@ -1,7 +1,6 @@
 import pandas as pd
 import streamlit as st
 import requests
-from streamlit_searchbox import st_searchbox
 
 # === App Title ===
 st.title("📞 Call Center Chatbot")
@@ -11,21 +10,19 @@ with st.expander("ℹ️ Hướng dẫn sử dụng chatbot", expanded=False):
     st.info("""
     **📘 Call Center Chatbot - Hướng Dẫn Sử Dụng**
 
-    **1. Nhập từ khóa**  
-    🔍 Gõ từ khóa vào ô tìm kiếm (ví dụ: *học phí, học bổng, đăng ký, lịch học*...).  
-    Chatbot sẽ tự động gợi ý những từ phù hợp.
+    **1. Chọn chủ đề và từ khóa từ thanh bên**  
+    📂 Sử dụng dropdown ở sidebar bên trái để chọn chủ đề (tên file CSV) và sau đó chọn từ khóa liên quan.
 
     **2. Xem câu trả lời**  
-    🤖 Sau khi chọn từ khóa, chatbot sẽ hiển thị câu trả lời tương ứng.  
-    Nếu có nhiều kết quả phù hợp, tất cả sẽ được hiển thị.
+    🤖 Sau khi chọn từ khóa, chatbot sẽ hiển thị câu trả lời tương ứng ở phần chính.
 
     **3. Dữ liệu tự động cập nhật**  
     📂 Dữ liệu được lấy từ GitHub và làm sạch trước khi hiển thị.  
     Hệ thống chỉ giữ lại phiên bản mới nhất của mỗi từ khóa.
 
     **Lưu ý:**  
-    - Nếu gặp lỗi khi kết nối, vui lòng kiểm tra kết nối mạng hoặc thử lại sau.  
-    - Hãy nhập từ khóa ngắn gọn hoặc phổ biến để tăng độ chính xác.
+    - Nếu gặp lỗi khi kết nối, vui lòng kiểm tra kết nối mạng hoặc thử lại sau.
+    - Hãy chọn chủ đề và từ khóa để tăng độ chính xác.
 
     **🛠 Góp ý & Báo lỗi**  
     Vui lòng liên hệ nhóm phát triển tại: [GitHub Repo](https://github.com/Menbeo/-HUHU-)
@@ -76,50 +73,40 @@ def load_csvs(csv_files):
     # ✅ Keep only the latest version of each "key word"
     combined = combined.drop_duplicates(subset="key word", keep="last")
 
-    # ✅ Log & remove duplicate descriptions (optional clean-up)
-    dupes = combined[combined.duplicated("description", keep=False)].copy()
-    removed_duplicates = dupes[dupes.duplicated("description", keep="first")]
+    # ✅ Remove duplicate descriptions (optional clean-up)
     cleaned_data = combined.drop_duplicates(subset="description", keep="first")
 
-    return cleaned_data, removed_duplicates
+    return cleaned_data
 
 # === Step 3: Load data ===
 csv_files = get_csv_file_links()
-data, removed_duplicates = load_csvs(csv_files)
+data = load_csvs(csv_files)
 
-# === Step 4: Chatbot UI ===
+# === Sidebar Navigation for Topic & Keyword Selection ===
+st.sidebar.title("📂 Chọn Chủ Đề & Từ Khóa")
 if not data.empty:
-    all_keywords = sorted(data["key word"].dropna().astype(str).unique())
+    # Get unique topics (based on CSV file names)
+    topics = sorted(data["topic"].dropna().unique())
+    selected_topic = st.sidebar.selectbox("Chọn chủ đề", topics)
 
-    def search_fn(user_input):
-        return [kw for kw in all_keywords if user_input.lower() in kw.lower()]
+    # Filter keywords for the selected topic
+    topic_keywords = sorted(data[data["topic"] == selected_topic]["key word"].dropna().unique())
+    selected_keyword = st.sidebar.selectbox("Chọn từ khóa", topic_keywords)
 
-    selected_keyword = st_searchbox(
-        search_fn,
-        key="keyword_search",
-        label="🔍 Gõ từ khóa",
-        placeholder="Ví dụ: học bổng, học phí..."
-    )
-
-    if selected_keyword:
-        st.session_state["selected_keyword"] = selected_keyword
-
-    if "selected_keyword" in st.session_state:
-        keyword = st.session_state["selected_keyword"]
-        matches = data[data["key word"].str.lower().str.contains(keyword.lower(), na=False)]
-
-        if not matches.empty:
-            for _, row in matches.iterrows():
-                st.write("🤖 **Bot:**", row["description"])
-                # st.caption(f"(📂 Chủ đề: {row['topic']} | 🔑 Từ khóa: {row['key word']})")
-        else:
-            st.info("Không tìm thấy mô tả cho từ khóa này.")
+    # Store the selected keyword in session state
+    st.session_state["selected_keyword"] = selected_keyword
 else:
     st.error("⚠️ Không tìm thấy dữ liệu hợp lệ.")
 
-# === (Optional) Dev View: See removed duplicates ===
-# with st.expander("🛠️ [Dev] Xem các mô tả trùng lặp đã bị xóa", expanded=False):
-#     if not removed_duplicates.empty:
-#         st.dataframe(removed_duplicates)
-#     else:
-#         st.write("✅ Không có mô tả nào bị trùng lặp.")
+# === Main Chatbot UI ===
+if not data.empty and "selected_keyword" in st.session_state:
+    st.subheader("🗨️ Kết quả trả lời")
+    keyword = st.session_state["selected_keyword"]
+    matches = data[data["key word"].str.lower().str.contains(keyword.lower(), na=False)]
+
+    if not matches.empty:
+        for _, row in matches.iterrows():
+            st.write("🤖 **Bot:**", row["description"])
+            st.caption(f"(📂 Chủ đề: {row['topic']} | 🔑 Từ khóa: {row['key word']})")
+    else:
+        st.info("Không tìm thấy mô tả cho từ khóa này.")
