@@ -1,0 +1,6 @@
+callcenter_chatbot/
+│
+├── app.py                    # File chính chứa code chatbot
+├── requirements.txt          # (tùy chọn) Thư viện cần cài
+└── .streamlit/
+    └── secrets.toml          # Chứa GitHub Token
